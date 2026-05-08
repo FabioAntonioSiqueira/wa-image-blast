@@ -253,6 +253,11 @@ textarea:focus{border-color:var(--blue);}
             </div>
             <button type="button" onclick="addVarRow()" class="btn" style="font-size:12px;padding:6px 12px;">+ Adicionar variável</button>
           </div>
+          <div class="field" style="margin-top:12px;margin-bottom:0;">
+            <label>Rodapé (footer) — opcional</label>
+            <input type="text" id="templateFooter" placeholder="Ex: Inti Agropecuária · inti.agr.br"/>
+            <div class="hint">Texto fixo que aparece abaixo da mensagem em cinza. Deixe em branco se seu template não tiver rodapé.</div>
+          </div>
         </div>
         <div id="freeformFields" style="display:none;">
           <div class="info-box" style="margin-bottom:0;">Mensagem livre funciona apenas para contatos que enviaram mensagem para você nas últimas 24 horas. Para listas frias, use templates aprovados.</div>
@@ -798,6 +803,10 @@ async function sendMeta(c){
     }
     if(vars.length>0){
       components.push({type:'body',parameters:vars});
+    }
+    const footerTxt=(document.getElementById('templateFooter')||{}).value||'';
+    if(footerTxt.trim()){
+      components.push({type:'footer',parameters:[{type:'text',text:footerTxt.trim()}]});
     }
     body={
       messaging_product:'whatsapp',
