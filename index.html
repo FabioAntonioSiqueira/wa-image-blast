@@ -230,17 +230,28 @@ textarea:focus{border-color:var(--blue);}
         <div id="templateFields">
           <div class="field">
             <label>Nome do template</label>
-            <input type="text" id="templateName" placeholder="Ex: comunicado_imagem"/>
+            <input type="text" id="templateName" placeholder="Ex: comunicado_imagem" value="comunicados"/>
             <div class="hint">Exatamente como está cadastrado no Meta Business Manager</div>
           </div>
           <div class="field">
             <label>Idioma do template</label>
-            <input type="text" id="templateLang" value="pt_BR" placeholder="pt_BR"/>
+            <input type="text" id="templateLang" value="pt_BR" placeholder="pt_BR"/> 
           </div>
           <div class="field">
-            <label>URL da imagem (header do template)</label>
+            <label>URL pública da imagem</label>
             <input type="text" id="templateImgUrl" placeholder="https://seusite.com/imagem.jpg"/>
-            <div class="hint">A imagem precisa estar hospedada em URL pública acessível. Pode usar Google Drive (link direto), Imgur, etc.</div>
+            <div class="hint">A imagem precisa estar em URL pública (Google Drive link direto, Imgur, seu servidor, etc.)</div>
+          </div>
+          <div class="field">
+            <label>Variáveis do corpo do template</label>
+            <div class="hint" style="margin-bottom:8px;">Liste os valores para cada variável <code>{{1}}</code>, <code>{{2}}</code>, etc. Use <code>{nome}</code> para personalizar com o contato.</div>
+            <div id="templateVarsWrap">
+              <div class="tpl-var-row" style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
+                <span style="font-size:12px;color:var(--txt2);width:30px;">{{1}}</span>
+                <input type="text" class="tpl-var-input" placeholder="Ex: {nome} ou texto fixo" value="{nome}" style="flex:1;"/>
+              </div>
+            </div>
+            <button type="button" onclick="addVarRow()" class="btn" style="font-size:12px;padding:6px 12px;">+ Adicionar variável</button>
           </div>
         </div>
         <div id="freeformFields" style="display:none;">
@@ -748,36 +759,70 @@ function toMetaPhone(raw){
   return '55'+d;
 }
 
+// Coleta variáveis do template preenchidas pelo usuário
+function getTemplateVars(c){
+  const inputs=document.querySelectorAll('.tpl-var-input');
+  return Array.from(inputs).map(inp=>{
+    const val=inp.value.replace(/\{nome\}/g,c.nome||'').replace(/\{telefone\}/g,c.telefone||'');
+    return{type:'text',text:val};
+  });
+}
+
+function addVarRow(){
+  const wrap=document.getElementById('templateVarsWrap');
+  const rows=wrap.querySelectorAll('.tpl-var-row');
+  const idx=rows.length+1;
+  const div=document.createElement('div');
+  div.className='tpl-var-row';
+  div.style.cssText='display:flex;gap:8px;margin-bottom:8px;align-items:center;';
+  div.innerHTML=`<span style="font-size:12px;color:var(--txt2);width:30px;">{{${idx}}}</span><input type="text" class="tpl-var-input" placeholder="Valor para {{${idx}}}" style="flex:1;padding:8px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:14px;"/><button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:16px;">×</button>`;
+  wrap.appendChild(div);
+}
+
 async function sendMeta(c){
   const phoneId=document.getElementById('metaPhoneId').value.trim();
   const token=document.getElementById('metaToken').value.trim();
   const ver=document.getElementById('metaVersion').value.trim()||'v19.0';
-  const caption=document.getElementById('msgText').value.replace(/\{nome\}/g,c.nome||'');
   const destino=toMetaPhone(c.telefone);
   let body;
   if(msgMode==='template'){
     const tplName=document.getElementById('templateName').value.trim();
     const tplLang=document.getElementById('templateLang').value.trim()||'pt_BR';
     const imgUrl=document.getElementById('templateImgUrl').value.trim();
-    body={messaging_product:'whatsapp',to:destino,type:'template',template:{name:tplName,language:{code:tplLang},components:[{type:'header',parameters:[{type:'image',image:{link:imgUrl}}]},{type:'body',parameters:[{type:'text',text:c.nome||''}]}]}};
+    const vars=getTemplateVars(c);
+
+    // Monta components — imagem vai no header se URL preenchida, vars no body
+    const components=[];
+    if(imgUrl){
+      components.push({type:'header',parameters:[{type:'image',image:{link:imgUrl}}]});
+    }
+    if(vars.length>0){
+      components.push({type:'body',parameters:vars});
+    }
+    body={
+      messaging_product:'whatsapp',
+      to:destino,
+      type:'template',
+      template:{name:tplName,language:{code:tplLang},components}
+    };
   } else {
+    const caption=document.getElementById('msgText').value.replace(/\{nome\}/g,c.nome||'');
     const imgUrl=document.getElementById('imgUrlInput').value.trim();
     body={messaging_product:'whatsapp',to:destino,type:'image',image:{link:imgUrl,caption}};
   }
-  // Tenta direto primeiro; se falhar por CORS usa proxy corsproxy.io
+
   const endpoint=`https://graph.facebook.com/${ver}/${phoneId}/messages`;
   const opts={method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(body)};
   let r;
   try{
     r=await fetch(endpoint,opts);
-  } catch(corsErr){
-    // CORS bloqueado — tenta via proxy
+  }catch(corsErr){
     log('⚠ CORS bloqueado, tentando via proxy...','info');
     const proxyUrl='https://corsproxy.io/?'+encodeURIComponent(endpoint);
     r=await fetch(proxyUrl,opts);
   }
   if(r.ok) return{ok:true};
-  const d=await r.json();
+  const d=await r.json().catch(()=>({}));
   return{ok:false,msg:d.error?.message||r.status};
 }
 
