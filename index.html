@@ -185,21 +185,27 @@ textarea:focus{border-color:var(--blue);}
           <div class="field"><label>URL pública da imagem (header)</label><input type="text" id="templateImgUrl" placeholder="https://seusite.com/imagem.jpg"/><div class="hint">Só preencha se o template foi aprovado com header de imagem. Caso contrário, deixe em branco.</div></div>
           <div class="field">
             <label>Formato das variáveis no template aprovado</label>
-            <div class="var-format-toggle"><button type="button" class="var-format-btn" id="fmtNumbered" onclick="setVarFormat('numbered')">Numeradas {{1}} {{2}}</button><button type="button" class="var-format-btn active" id="fmtNamed" onclick="setVarFormat('named')">Nomeadas {{nome}} {{produto}}</button></div>
+            <div class="var-format-toggle"><button type="button" class="var-format-btn" id="fmtNumbered" onclick="setVarFormat('numbered')">Numeradas {{1}} {{2}}</button><button type="button" class="var-format-btn active" id="fmtNamed" onclick="setVarFormat('named')">Nomeadas {{nome}} {{comunicado}}</button></div>
             <div class="hint">Selecione conforme o template foi aprovado pela Meta. Templates novos costumam usar variáveis nomeadas.</div>
           </div>
           <div class="field">
             <label>Variáveis do corpo do template</label>
-            <div class="hint" style="margin-bottom:8px;">Para cada variável <code>{{nome_da_var}}</code> do template, informe o nome (esquerda) e o valor (direita). Use <code>{nome}</code> ou <code>{telefone}</code> no valor para personalizar com o contato.</div>
+            <div class="hint" style="margin-bottom:8px;">Para cada variável <code>{{nome_da_var}}</code> do template, informe o nome exatamente como está no template aprovado (esquerda) e o valor a enviar (direita). Use <code>{nome}</code>, <code>{telefone}</code> ou <code>{comunicado}</code> no valor para personalizar com os dados do contato importado na planilha — ou digite um texto fixo se for o mesmo para todos.</div>
             <div id="templateVarsWrap">
               <div class="tpl-var-row" style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
-                <input type="text" class="tpl-var-name" placeholder="nome_var" value="name" style="flex:0 0 130px;padding:8px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface2);font-family:'Space Mono',monospace;font-size:12px;"/>
+                <input type="text" class="tpl-var-name" placeholder="nome_var" value="nome" style="flex:0 0 130px;padding:8px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface2);font-family:'Space Mono',monospace;font-size:12px;"/>
                 <input type="text" class="tpl-var-input" placeholder="Ex: {nome} ou texto fixo" value="{nome}" style="flex:1;padding:8px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:14px;"/>
+                <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:16px;width:24px;">×</button>
+              </div>
+              <div class="tpl-var-row" style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
+                <input type="text" class="tpl-var-name" placeholder="nome_var" value="comunicado" style="flex:0 0 130px;padding:8px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface2);font-family:'Space Mono',monospace;font-size:12px;"/>
+                <input type="text" class="tpl-var-input" placeholder="Ex: {comunicado} ou texto fixo" value="{comunicado}" style="flex:1;padding:8px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:14px;"/>
                 <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:16px;width:24px;">×</button>
               </div>
             </div>
             <button type="button" onclick="addVarRow()" class="btn" style="font-size:12px;padding:6px 12px;">+ Adicionar variável</button>
           </div>
+          <div class="info-box green" style="margin-top:12px;margin-bottom:0;font-size:12px;"><strong>Sobre a coluna "comunicado":</strong> se a sua planilha (passo 2) tiver uma coluna chamada <code>comunicado</code>, cada contato pode receber um texto diferente — basta deixar o valor da variável como <code>{comunicado}</code> (já configurado acima). Se o comunicado for igual para todo mundo, apague <code>{comunicado}</code> e digite o texto fixo diretamente nesse campo.</div>
           <div class="info-box warning" style="margin-top:12px;margin-bottom:0;font-size:12px;"><strong>⚠ Sobre o rodapé:</strong> O footer do template (texto como "AGROGUARD | INTI AGSOLUTIONS") é <strong>fixo no template aprovado pela Meta</strong> e aparece automaticamente. Não envie ele via API — isso causa erro <code>(#100) Invalid parameter</code>.</div>
         </div>
         <div id="freeformFields" style="display:none;"><div class="info-box" style="margin-bottom:0;">Mensagem livre funciona apenas para contatos que enviaram mensagem para você nas últimas 24 horas. Para listas frias, use templates aprovados.</div></div>
@@ -219,7 +225,7 @@ textarea:focus{border-color:var(--blue);}
   <div class="section" id="sec2">
     <div class="card">
       <div class="card-title">Importar contatos do Excel ou CSV</div>
-      <div class="drop-zone" id="xlsDrop"><input type="file" id="xlsInput" accept=".xlsx,.xls,.csv" onchange="handleXLS(this.files[0])"/><div class="drop-icon">📊</div><div class="drop-label">Clique ou arraste o arquivo Excel / CSV</div><div class="drop-sub">Colunas obrigatórias: <strong>nome</strong> e <strong>telefone</strong> (com DDD, sem +55)</div></div>
+      <div class="drop-zone" id="xlsDrop"><input type="file" id="xlsInput" accept=".xlsx,.xls,.csv" onchange="handleXLS(this.files[0])"/><div class="drop-icon">📊</div><div class="drop-label">Clique ou arraste o arquivo Excel / CSV</div><div class="drop-sub">Colunas obrigatórias: <strong>nome</strong> e <strong>telefone</strong> (com DDD, sem +55). Coluna opcional: <strong>comunicado</strong> (texto individual por contato).</div></div>
       <div id="contactsTable"></div>
       <div id="contactsCount" style="font-size:12px;color:var(--txt2);margin-top:10px;"></div>
     </div>
@@ -299,7 +305,6 @@ let msgMode='template';
 let stopFlag=false;
 let sentCount=0;
 let errCount=0;
-
 // ---- API SELECTOR ----
 function selectApi(mode){
   apiMode=mode;
@@ -318,7 +323,6 @@ function selectApi(mode){
   updateBtnColors();
 }
 selectApi('meta');
-
 function updateBtnColors(){
   const cls=apiMode==='meta'?'btn-meta':'btn-evo';
   document.getElementById('btnNext1').className='btn '+cls;
@@ -327,7 +331,6 @@ function updateBtnColors(){
   document.getElementById('btnSend').className='btn '+cls;
   document.querySelectorAll('.step-btn').forEach(b=>b.classList.remove('active-meta','active-evo'));
 }
-
 function setMsgMode(m){
   msgMode=m;
   document.getElementById('tabTemplate').className='tab-btn'+(m==='template'?' active':'');
@@ -335,7 +338,6 @@ function setMsgMode(m){
   document.getElementById('templateFields').style.display=m==='template'?'':'none';
   document.getElementById('freeformFields').style.display=m==='freeform'?'':'none';
 }
-
 function setVarFormat(f){
   varFormat=f;
   document.getElementById('fmtNumbered').className='var-format-btn'+(f==='numbered'?' active':'');
@@ -358,7 +360,6 @@ function setVarFormat(f){
     document.querySelectorAll('.tpl-var-num').forEach(el=>el.remove());
   }
 }
-
 // ---- STEPS ----
 function goTo(n){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -372,7 +373,6 @@ function goTo(n){
   }
   if(n===4) document.getElementById('statTotal').textContent=contacts.length;
 }
-
 // ---- TEST CONNECTIONS ----
 async function testMeta(){
   const phoneId=document.getElementById('metaPhoneId').value.trim();
@@ -397,7 +397,6 @@ async function testMeta(){
   }
   badge.className='status-badge badge-err';badge.textContent='Erro de conexão — verifique as credenciais';
 }
-
 async function testEvo(){
   const url=document.getElementById('evoUrl').value.trim().replace(/\/$/,'');
   const key=document.getElementById('evoKey').value.trim();
@@ -412,7 +411,6 @@ async function testEvo(){
     else{badge.className='status-badge badge-err';badge.textContent='Estado: '+(state||'desconectado');}
   }catch(e){badge.className='status-badge badge-err';badge.textContent='Erro de conexão';}
 }
-
 // ---- CONTACTS ----
 function handleXLS(f){
   if(!f)return;
@@ -425,10 +423,11 @@ function handleXLS(f){
       const header=lines[0].split(/[,;]/).map(h=>h.trim().toLowerCase().replace(/^"|"$/g,''));
       const ni=header.findIndex(h=>h.includes('nome')||h.includes('name'));
       const ti=header.findIndex(h=>h.includes('tel')||h.includes('phone')||h.includes('whats')||h.includes('celular'));
+      const ci=header.findIndex(h=>h.includes('comunicado')||h.includes('mensagem')||h.includes('texto'));
       lines.slice(1).filter(l=>l.trim()).forEach(l=>{
         const cols=l.split(/[,;]/).map(c=>c.trim().replace(/^"|"$/g,''));
         const tel=String(cols[ti]||'').replace(/\D/g,'');
-        if(tel) rows.push({nome:cols[ni]||'',telefone:tel,status:'pending'});
+        if(tel) rows.push({nome:cols[ni]||'',telefone:tel,comunicado:ci>-1?(cols[ci]||''):'',status:'pending'});
       });
     } else {
       const wb=XLSX.read(e.target.result,{type:'binary'});
@@ -437,7 +436,8 @@ function handleXLS(f){
       data.forEach(r=>{
         const nome=String(r.nome||r.Nome||r.NOME||r.name||r.Name||'');
         const tel=String(r.telefone||r.Telefone||r.TELEFONE||r.phone||r.Phone||r.whatsapp||r.Whatsapp||r.celular||r.Celular||'').replace(/\D/g,'');
-        if(tel) rows.push({nome,telefone:tel,status:'pending'});
+        const comunicado=String(r.comunicado||r.Comunicado||r.COMUNICADO||r.mensagem||r.Mensagem||r.texto||r.Texto||'');
+        if(tel) rows.push({nome,telefone:tel,comunicado,status:'pending'});
       });
     }
     contacts=rows;
@@ -450,7 +450,6 @@ function handleXLS(f){
   if(f.name.toLowerCase().endsWith('.csv')) reader.readAsText(f,'UTF-8');
   else reader.readAsBinaryString(f);
 }
-
 function renderContacts(){
   const wrap=document.getElementById('contactsTable');
   if(!contacts.length){wrap.innerHTML='';return;}
@@ -460,7 +459,6 @@ function renderContacts(){
 }
 function statusLabel(s){return s==='sent'?'enviado':s==='error'?'erro':'pendente';}
 function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
-
 // ---- IMAGE ----
 function handleImg(f){
   if(!f)return;
@@ -489,7 +487,6 @@ function updateChar(){
   document.getElementById('charCount').textContent=v+' / 1024';
 }
 updateChar();
-
 // ---- DELAYS ----
 function updateDelayMin(){
   const v=parseInt(document.getElementById('delayMin').value);
@@ -509,7 +506,6 @@ function randDelay(){
   const mx=parseInt(document.getElementById('delayMax').value)*1000;
   return mn+Math.random()*(mx-mn);
 }
-
 // ---- COUNTDOWN TIMER ----
 let countdownInterval=null;
 function startCountdown(seconds){
@@ -538,7 +534,6 @@ function sleepCountdown(ms){
   if(apiMode==='evo') startCountdown(Math.round(ms/1000));
   return sleep(ms);
 }
-
 // ---- SEND LOOP ----
 async function startSend(){
   if(!contacts.length){log('⚠ Importe contatos no passo 2.','info');return;}
@@ -547,20 +542,17 @@ async function startSend(){
     ? parseInt(document.getElementById('batchSizeEvo').value)
     : parseInt(document.getElementById('batchSize').value);
   const evoSec=isEvo ? parseInt(document.getElementById('evoInterval').value) : 0;
-
   stopFlag=false;sentCount=0;errCount=0;
   document.getElementById('btnSend').style.display='none';
   document.getElementById('btnStop').style.display='';
   document.getElementById('btnBack').style.display='none';
   document.getElementById('sendLog').innerHTML='';
   contacts.forEach(c=>c.status='pending');
-
   if(isEvo){
     const total=contacts.length;
     const mins=Math.ceil((total*evoSec)/60);
     log(`ℹ Disparo de ${total} mensagens com intervalo de ${evoSec}s. Tempo estimado: ~${mins} min.`,'info');
   }
-
   for(let i=0;i<contacts.length;i++){
     if(stopFlag) break;
     const c=contacts[i];
@@ -575,12 +567,10 @@ async function startSend(){
       if(ok){sentCount++;contacts[i].status='sent';log(`✓ ${c.nome||c.telefone} — enviado`,'ok');}
       else{errCount++;contacts[i].status='error';log(`✗ ${c.nome||c.telefone} — ${errMsg}`,'err');}
     }catch(e){errCount++;contacts[i].status='error';log(`✗ ${c.nome||c.telefone} — ${e.message}`,'err');}
-
     document.getElementById('statSent').textContent=sentCount;
     document.getElementById('statErr').textContent=errCount;
     document.getElementById('progBar').style.width=Math.round((i+1)/contacts.length*100)+'%';
     renderContacts();
-
     if(i<contacts.length-1&&!stopFlag){
       if(isEvo){
         if(batch>0&&(i+1)%batch===0){
@@ -608,7 +598,6 @@ async function startSend(){
   document.getElementById('btnStop').style.display='none';
   document.getElementById('btnBack').style.display='';
 }
-
 // ---- TELEFONE ----
 function normalizeTel(raw){
   let d=String(raw).replace(/\D/g,'');
@@ -619,9 +608,8 @@ function toMetaPhone(raw){
   const d=normalizeTel(raw);
   return '55'+d;
 }
-
 // ---- VARIÁVEIS DO TEMPLATE ----
-// CORREÇÃO PRINCIPAL: agora retorna parameter_name para templates com variáveis nomeadas {{nome}}
+// Suporta {nome}, {telefone} e {comunicado} (esta última vinda da coluna "comunicado" da planilha)
 function getTemplateVars(c){
   const rows=document.querySelectorAll('.tpl-var-row');
   const params=[];
@@ -631,7 +619,8 @@ function getTemplateVars(c){
     if(!valInput) return;
     const val=valInput.value
       .replace(/\{nome\}/g,c.nome||'')
-      .replace(/\{telefone\}/g,c.telefone||'');
+      .replace(/\{telefone\}/g,c.telefone||'')
+      .replace(/\{comunicado\}/g,c.comunicado||'');
     if(varFormat==='named'){
       const pname=(nameInput?.value||'').trim();
       if(!pname) return; // pula linhas sem nome de variável
@@ -642,7 +631,6 @@ function getTemplateVars(c){
   });
   return params;
 }
-
 function addVarRow(){
   const wrap=document.getElementById('templateVarsWrap');
   const rows=wrap.querySelectorAll('.tpl-var-row');
@@ -655,7 +643,6 @@ function addVarRow(){
   div.innerHTML=`${numPrefix}<input type="text" class="tpl-var-name" placeholder="nome_var" style="${nameStyle}flex:0 0 130px;padding:8px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface2);font-family:'Space Mono',monospace;font-size:12px;"/><input type="text" class="tpl-var-input" placeholder="Valor (ex: {nome})" style="flex:1;padding:8px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:14px;"/><button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:16px;width:24px;">×</button>`;
   wrap.appendChild(div);
 }
-
 // ---- MONTA O BODY DA REQUISIÇÃO META ----
 function buildMetaBody(c){
   const destino=toMetaPhone(c.telefone);
@@ -686,11 +673,10 @@ function buildMetaBody(c){
     return {messaging_product:'whatsapp',to:destino,type:'image',image:{link:imgUrl,caption}};
   }
 }
-
 // ---- DEBUG: mostra payload exato ----
 function showDebugPayload(){
   const el=document.getElementById('debugPayload');
-  const sample = contacts[0] || {nome:'João Teste',telefone:'62999999999'};
+  const sample = contacts[0] || {nome:'João Teste',telefone:'62999999999',comunicado:'Texto de exemplo do comunicado para este contato.'};
   try {
     const body = buildMetaBody(sample);
     el.textContent = JSON.stringify(body, null, 2);
@@ -700,7 +686,6 @@ function showDebugPayload(){
     el.style.display='block';
   }
 }
-
 // ---- SEND META ----
 async function sendMeta(c){
   const phoneId=document.getElementById('metaPhoneId').value.trim();
@@ -728,7 +713,6 @@ async function sendMeta(c){
     || ('HTTP '+r.status);
   return{ok:false,msg:detail};
 }
-
 async function sendEvo(c){
   const url=document.getElementById('evoUrl').value.trim().replace(/\/$/,'');
   const key=document.getElementById('evoKey').value.trim();
@@ -741,7 +725,6 @@ async function sendEvo(c){
   let emsg='';try{const j=await r.json();emsg=j.message||j.error||r.status;}catch(e){emsg=r.status;}
   return{ok:false,msg:emsg};
 }
-
 function stopSending(){stopFlag=true;}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 function log(txt,type){
@@ -750,7 +733,6 @@ function log(txt,type){
   const d=document.createElement('div');d.className='log-line log-'+type;d.textContent=txt;
   el.appendChild(d);el.scrollTop=el.scrollHeight;
 }
-
 // Drag & drop
 ['xlsDrop','imgDrop'].forEach(id=>{
   const z=document.getElementById(id);if(!z)return;
